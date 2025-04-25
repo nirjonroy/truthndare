@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Truth or Dare</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <!-- Bootstrap 5 CDN -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+
+  <style>
+    body {
+      background: #f8f9fa;
+      font-family: 'Segoe UI', sans-serif;
+      text-align: center;
+      padding: 20px;
+    }
+
+    h1 {
+      color: #343a40;
+      margin-bottom: 30px;
+    }
+
+    #circleContainer {
+      position: relative;
+      width: 300px;
+      height: 300px;
+      margin: 0 auto 20px;
+    }
+
+    .player-circle {
+      position: absolute;
+      width: 80px;
+      height: 30px;
+      text-align: center;
+      transform-origin: 50% 150px;
+      font-size: 14px;
+      font-weight: 500;
+    }
+
+    #spinBtn {
+      width: 120px;
+      height: 120px;
+      border-radius: 50%;
+      font-size: 20px;
+      font-weight: bold;
+      background-color: #0d6efd;
+      color: white;
+      border: none;
+      transition: transform 1s ease-out;
+      position: absolute;
+      top: 90px;
+      left: 90px;
+      z-index: 2;
+    }
+
+    #spinBtn.spinning {
+      animation: spin 1s ease-out;
+    }
+
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+
+    .result-box {
+      margin-top: 20px;
+      padding: 20px;
+      border-radius: 10px;
+      background: white;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    }
+
+    @media (max-width: 576px) {
+      #circleContainer {
+        width: 250px;
+        height: 250px;
+      }
+
+      #spinBtn {
+        width: 100px;
+        height: 100px;
+        top: 75px;
+        left: 75px;
+        font-size: 16px;
+      }
+
+      .player-circle {
+        width: 60px;
+        font-size: 12px;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    <h1>Truth or Dare</h1>
+
+    <div class="mb-3">
+      <input type="text" id="playerName" class="form-control" placeholder="Enter player name (max 20)">
+      <button class="btn btn-success mt-2" onclick="addPlayer()">Add Player</button>
+    </div>
+
+    <div id="circleContainer"></div>
+
+    <div class="result-box" id="result">Add players and press spin!</div>
+  </div>
+
+  <!-- Bootstrap JS -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+  <script>
+    const players = [];
+    const maxPlayers = 20;
+    let playerQueue = [];
+
+    const truths = [
+      "What’s your biggest fear?",
+      "Have you ever lied to a friend?",
+      "What's your most embarrassing moment?",
+      "Who do you like right now?",
+      "What's a secret you've never told anyone?"
+    ];
+
+    const dares = [
+      "Do 10 jumping jacks.",
+      "Sing a song loudly.",
+      "Do your best dance for 10 seconds.",
+      "Speak in a funny voice for 1 minute.",
+      "Act like a monkey for 15 seconds."
+    ];
+
+    function addPlayer() {
+      const nameInput = document.getElementById('playerName');
+      const name = nameInput.value.trim();
+
+      if (name && players.length < maxPlayers) {
+        players.push(name);
+        nameInput.value = '';
+        shuffleQueue();
+        renderCircle();
+      } else if (players.length >= maxPlayers) {
+        alert("Maximum 20 players allowed.");
+      }
+    }
+
+    function shuffleQueue() {
+      playerQueue = [...players].sort(() => Math.random() - 0.5);
+    }
+
+    function renderCircle() {
+      const container = document.getElementById('circleContainer');
+      container.innerHTML = '';
+      
+      const centerBtn = document.createElement('button');
+      centerBtn.innerHTML = "🎲<br>Spin";
+      centerBtn.id = "spinBtn";
+      centerBtn.onclick = startGame;
+      container.appendChild(centerBtn);
+
+      const radius = 120;
+      const total = players.length;
+      for (let i = 0; i < total; i++) {
+        const angle = (2 * Math.PI / total) * i;
+        const x = radius + radius * Math.cos(angle) - 40;
+        const y = radius + radius * Math.sin(angle) - 15;
+
+        const div = document.createElement('div');
+        div.className = "player-circle";
+        div.style.left = `${x}px`;
+        div.style.top = `${y}px`;
+        div.textContent = players[i];
+        container.appendChild(div);
+      }
+    }
+
+    function startGame() {
+      if (players.length < 2) {
+        alert("Add at least 2 players to start!");
+        return;
+      }
+
+      if (playerQueue.length === 0) {
+        shuffleQueue();
+      }
+
+      const spinBtn = document.getElementById('spinBtn');
+      spinBtn.disabled = true;
+      spinBtn.classList.add('spinning');
+
+      setTimeout(() => {
+        const player = playerQueue.pop();
+        const choice = Math.random() < 0.5 ? 'Truth' : 'Dare';
+        const question = choice === 'Truth'
+          ? truths[Math.floor(Math.random() * truths.length)]
+          : dares[Math.floor(Math.random() * dares.length)];
+
+        document.getElementById('result').innerHTML = 
+          `<strong>${player}</strong>, your turn!<br><strong>${choice}</strong>: ${question}`;
+
+        spinBtn.classList.remove('spinning');
+        spinBtn.disabled = false;
+      }, 1000);
+    }
+  </script>
+</body>
+</html>
